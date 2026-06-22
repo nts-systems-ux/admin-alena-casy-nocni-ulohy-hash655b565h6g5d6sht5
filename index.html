@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin: Noční hry v časy</title>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --grey: #64748b;
+            --grey-hover: #475569;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--border);
+            margin: 16px 0;
+            border: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-blue { background-color: var(--primary); }
+        .btn-blue:hover { background-color: var(--primary-hover); }
+        
+        .btn-red { background-color: var(--danger); }
+        .btn-red:hover { background-color: var(--danger-hover); }
+
+        .btn-green { background-color: var(--success); }
+        .btn-green:hover { background-color: var(--success-hover); }
+
+        .btn-grey { background-color: var(--grey); }
+        .btn-grey:hover { background-color: var(--grey-hover); }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .subtitle-text {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+
+        .added-time-card {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .added-time-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            margin-top: 8px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .footer-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.open .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .modal-text {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .warning-icon {
+            font-size: 40px;
+            color: var(--danger);
+            text-align: center;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* Overview styling */
+        .overview-item {
+            background-color: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .overview-item-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            font-weight: bold;
+        }
+        .status-success { color: var(--success); }
+        .status-danger { color: var(--danger); }
+
+        .log-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .log-row {
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .log-row.success { color: var(--success); }
+        .log-row.danger { color: var(--danger); }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .time-picker-wrapper {
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container">
+        <!-- HLAVNÍ OBRAZOVKA ADMINA -->
+        <div id="main-view" class="view-section active">
+            <h1>Admin: Noční hry v časy</h1>
+            <div class="divider"></div>
+            
+            <div id="action-btn-container">
+                <!-- Tlačítko bude generováno dynamicky podle stavu DB -->
+                <button class="btn btn-blue" id="btn-init-add">
+                    <span>+</span> Přidat nové termíny
+                </button>
+            </div>
+
+            <div id="overview-container" style="display: none;">
+                <div class="divider"></div>
+                <h2>Přehled:</h2>
+                <div id="overview-list"></div>
+            </div>
+        </div>
+
+        <!-- EDITOR ČASŮ OBRAZOVKA -->
+        <div id="editor-view" class="view-section">
+            <h1>Editor časů</h1>
+            <p class="subtitle-text">Zde zadat časy, kdy má Alena potvrdit, že je u telefonu:</p>
+            
+            <button class="btn btn-green" id="btn-trigger-add-modal" style="margin-bottom: 20px;">
+                Přidat
+            </button>
+
+            <div class="divider"></div>
+            <h2>Přidané časy:</h2>
+            <div id="editor-times-list"></div>
+
+            <div class="footer-buttons">
+                <button class="btn btn-grey" id="btn-editor-back">← Zpět</button>
+                <button class="btn btn-green" id="btn-editor-save" style="display: none;">Uložit!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Přidání nového času -->
+    <div class="modal-overlay" id="modal-add-time">
+        <div class="modal-box">
+            <div class="modal-title">Přidání nového času:</div>
+            <div class="time-picker-wrapper">
+                <input type="time" id="input-modal-time" class="form-control" style="font-size: 18px; text-align: center;">
+            </div>
+            <div id="modal-add-error" style="color: var(--danger); font-size: 13px; text-align: center; margin-bottom: 12px; display: none; font-weight: bold;">
+                Musí být zvolený čas!
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-grey" id="btn-modal-add-storno">Storno</button>
+                <button class="btn btn-green" id="btn-modal-add-confirm">Potvrdit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Varování při zpět z editoru -->
+    <div class="modal-overlay" id="modal-warn-back">
+        <div class="modal-box">
+            <span class="warning-icon">⚠</span>
+            <div class="modal-text" style="font-weight: bold; color: var(--text);">Pokračováním se data neuloží!!!</div>
+            <div class="modal-buttons">
+                <button class="btn btn-red" id="btn-modal-back-continue">Pokračovat</button>
+                <button class="btn btn-green" id="btn-modal-back-return">Vrátit se</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Varování při mazání relace -->
+    <div class="modal-overlay" id="modal-confirm-delete">
+        <div class="modal-box">
+            <span class="warning-icon">⚠</span>
+            <div class="modal-text" style="font-weight: bold; color: var(--text);">Pokračováním se odstraní aktuální relace! Pokračovat?</div>
+            <div class="modal-buttons">
+                <button class="btn btn-red" id="btn-modal-delete-continue">Pokračovat</button>
+                <button class="btn btn-green" id="btn-modal-delete-cancel">Zrušit</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5vJGU5C0ylCWASHNJnLvgx-hzX-uXwDY",
+            authDomain: "nocni-hry-casy.firebaseapp.com",
+            databaseURL: "https://nocni-hry-casy-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "nocni-hry-casy",
+            storageBucket: "nocni-hry-casy.firebasestorage.app",
+            messagingSenderId: "387812121328",
+            appId: "1:387812121328:web:16c3fdb37aac11ad1c8035"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Lokální paměť pro editor
+        let localTimes = []; 
+        // Načtená data z DB
+        let dbData = null;
+
+        // Elementy
+        const mainView = document.getElementById('main-view');
+        const editorView = document.getElementById('editor-view');
+        const actionBtnContainer = document.getElementById('action-btn-container');
+        const overviewContainer = document.getElementById('overview-container');
+        const overviewList = document.getElementById('overview-list');
+        const editorTimesList = document.getElementById('editor-times-list');
+        const btnEditorSave = document.getElementById('btn-editor-save');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        // Sledování databáze v reálném čase
+        onValue(ref(db, '/'), (snapshot) => {
+            dbData = snapshot.val();
+            renderMainScreen();
+        });
+
+        function showLoading(show) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        // Pomocná funkce pro seřazení klíčů časů chronologicky
+        function getSortedTimeKeys(dataObj) {
+            if (!dataObj) return [];
+            return Object.keys(dataObj).filter(k => k.includes('_')).sort((a, b) => {
+                const [hA, mA] = a.split('_').map(Number);
+                const [hB, mB] = b.split('_').map(Number);
+                return (hA * 60 + mA) - (hB * 60 + mB);
+            });
+        }
+
+        // Vykreslení hlavní obrazovky na základě existence dat v DB
+        function renderMainScreen() {
+            actionBtnContainer.innerHTML = '';
+            
+            if (!dbData || Object.keys(dbData).length === 0) {
+                // Situace 1: Databáze je prázdná
+                overviewContainer.style.display = 'none';
+                
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-blue';
+                btn.innerHTML = '<span>+</span> Přidat nové termíny';
+                btn.onclick = () => {
+                    localTimes = [];
+                    renderEditorList();
+                    mainView.classList.remove('active');
+                    editorView.classList.add('active');
+                };
+                actionBtnContainer.appendChild(btn);
+            } else {
+                // Situace 2: V databázi jsou data
+                overviewContainer.style.display = 'block';
+                
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-red';
+                btn.innerHTML = '🗑 Smazat aktuální relace';
+                btn.onclick = () => openModal('modal-confirm-delete');
+                actionBtnContainer.appendChild(btn);
+
+                // Vykreslení přehledu časů
+                overviewList.innerHTML = '';
+                const sortedKeys = getSortedTimeKeys(dbData);
+                
+                sortedKeys.forEach((key) => {
+                    const itemData = dbData[key];
+                    const displayTime = key.replace('_', ':');
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'overview-item';
+
+                    // Zjištění ikon do nadpisu času
+                    let iconSpan = '';
+                    let isLate = false;
+                    
+                    // Prohledáme klíče, zda neobsahují 'pozde'
+                    Object.keys(itemData).forEach(k => {
+                        if (k.startsWith('pozde')) isLate = true;
+                    });
+
+                    if (itemData.provedeno === 1) {
+                        iconSpan = '<span class="status-badge status-success">✓</span>';
+                    } else if (isLate) {
+                        iconSpan = '<span class="status-badge status-danger">✗</span>';
+                    }
+
+                    // Hlavička položky
+                    const header = document.createElement('div');
+                    header.className = 'overview-item-title';
+                    header.innerHTML = `${iconSpan} Čas: ${displayTime}`;
+                    itemDiv.appendChild(header);
+
+                    // Tlačítko potvrdit jako admin
+                    const btnConfirm = document.createElement('button');
+                    btnConfirm.className = 'btn btn-green';
+                    btnConfirm.style.padding = '8px 12px';
+                    btnConfirm.style.fontSize = '14px';
+                    btnConfirm.style.width = 'auto';
+                    btnConfirm.style.marginTop = '4px';
+                    btnConfirm.innerText = 'Potvrdit jako admin.';
+                    btnConfirm.onclick = () => confirmAsAdmin(key);
+                    itemDiv.appendChild(btnConfirm);
+
+                    // List operací (logy)
+                    const logList = document.createElement('div');
+                    logList.className = 'log-list';
+
+                    // Seřadíme všechny pod-klíče pro konzistentní zobrazení logů
+                    const itemKeys = Object.keys(itemData).sort();
+
+                    itemKeys.forEach((subKey) => {
+                        if (subKey.startsWith('incor')) {
+                            const logRow = document.createElement('div');
+                            logRow.className = 'log-row danger';
+                            logRow.innerHTML = `✗ Uživatel zadal nesprávné heslo. Přístup zamítnut`;
+                            logList.appendChild(logRow);
+                        }
+                        if (subKey.startsWith('brzy')) {
+                            const logRow = document.createElement('div');
+                            logRow.className = 'log-row danger';
+                            logRow.innerHTML = `✗ Příliš brzy! Nepotvrzeno, zkus to později.`;
+                            logList.appendChild(logRow);
+                        }
+                        if (subKey.startsWith('pozde')) {
+                            const logRow = document.createElement('div');
+                            logRow.className = 'log-row danger';
+                            logRow.innerHTML = `✗ Bohužel, pozdě. Více štěstí příště!`;
+                            logList.appendChild(logRow);
+                        }
+                    });
+
+                    // Úspěšné potvrzení adminem nebo uživatelem
+                    if (itemData.zadal && itemData.real_cas) {
+                        const logRow1 = document.createElement('div');
+                        logRow1.className = 'log-row success';
+                        logRow1.innerHTML = `✓ Potvrdil: ${itemData.zadal}`;
+                        logList.appendChild(logRow1);
+
+                        const logRow2 = document.createElement('div');
+                        logRow2.className = 'log-row success';
+                        logRow2.innerHTML = `✓ dokončeno: ${itemData.real_cas}`;
+                        logList.appendChild(logRow2);
+                    }
+
+                    if (logList.children.length > 0) {
+                        itemDiv.appendChild(logList);
+                    }
+
+                    overviewList.appendChild(itemDiv);
+                });
+            }
+        }
+
+        // Potvrzení adminem
+        async function confirmAsAdmin(timeKey) {
+            showLoading(true);
+            try {
+                const now = new Date();
+                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+                
+                // Aktualizujeme aktuální čas na provedeno=1
+                const updates = {};
+                updates[`/${timeKey}/provedeno`] = 1;
+                updates[`/${timeKey}/zadal`] = "sysadmin";
+                updates[`/${timeKey}/real_cas`] = timeStr;
+
+                // Najdeme následující čas a odemkneme ho (nastavíme 0)
+                const sortedKeys = getSortedTimeKeys(dbData);
+                const currentIndex = sortedKeys.indexOf(timeKey);
+                if (currentIndex !== -1 && currentIndex < sortedKeys.length - 1) {
+                    const nextKey = sortedKeys[currentIndex + 1];
+                    // Pouze pokud ještě nebyl dokončen
+                    if (dbData[nextKey].provedeno === 5) {
+                        updates[`/${nextKey}/provedeno`] = 0;
+                    }
+                }
+
+                await update(ref(db, '/'), updates);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Smazání celé relace
+        document.getElementById('btn-modal-delete-continue').onclick = async () => {
+            closeModal('modal-confirm-delete');
+            showLoading(true);
+            try {
+                await set(ref(db, '/'), null);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        document.getElementById('btn-modal-delete-cancel').onclick = () => {
+            closeModal('modal-confirm-delete');
+        };
+
+        // --- EDITOR ČASŮ LOGIKA ---
+
+        // Otevření okna pro přidání času
+        document.getElementById('btn-trigger-add-modal').onclick = () => {
+            document.getElementById('input-modal-time').value = '';
+            document.getElementById('modal-add-error').style.display = 'none';
+            openModal('modal-add-time');
+        };
+
+        document.getElementById('btn-modal-add-storno').onclick = () => {
+            closeModal('modal-add-time');
+        };
+
+        document.getElementById('btn-modal-add-confirm').onclick = () => {
+            const timeVal = document.getElementById('input-modal-time').value;
+            if (!timeVal) {
+                document.getElementById('modal-add-error').style.display = 'block';
+                return;
+            }
+            
+            // Převedeme formát HH:MM na H:MM pokud hodina začíná nulou, pro přesnou shodu se zadáním složek (např. 1:50)
+            const [h, m] = timeVal.split(':');
+            const formattedTime = `${parseInt(h)}:${m}`;
+
+            // Kontrola duplicity v lokálním seznamu
+            if (!localTimes.some(t => t.time === formattedTime)) {
+                localTimes.push({
+                    time: formattedTime,
+                    heslo: ''
+                });
+            }
+
+            closeModal('modal-add-time');
+            renderEditorList();
+        };
+
+        // Vykreslení seznamu přidaných časů v editoru
+        function renderEditorList() {
+            editorTimesList.innerHTML = '';
+            
+            // Seřadit lokální časy od nejmenšího po největší pro přehlednost v editoru
+            localTimes.sort((a, b) => {
+                const [hA, mA] = a.time.split(':').map(Number);
+                const [hB, mB] = b.time.split(':').map(Number);
+                return (hA * 60 + mA) - (hB * 60 + mB);
+            });
+
+            if (localTimes.length === 0) {
+                btnEditorSave.style.display = 'none';
+            } else {
+                btnEditorSave.style.display = 'block';
+            }
+
+            localTimes.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'added-time-card';
+                
+                card.innerHTML = `
+                    <div class="added-time-header">Čas: ${item.time}</div>
+                    <div class="form-group">
+                        <label>Heslo pro uživatelské potvrzení:</label>
+                        <input type="text" class="form-control password-input" data-index="${index}" value="${item.heslo}">
+                    </div>
+                `;
+                editorTimesList.appendChild(card);
+            });
+
+            // Přidat listenery pro uložení hesla při překliknutí (change / blur)
+            document.querySelectorAll('.password-input').forEach(input => {
+                input.onchange = (e) => {
+                    const idx = e.target.getAttribute('data-index');
+                    localTimes[idx].heslo = e.target.value;
+                };
+            });
+        }
+
+        // Tlačítko Zpět v editoru
+        document.getElementById('btn-editor-back').onclick = () => {
+            if (localTimes.length > 0) {
+                openModal('modal-warn-back');
+            } else {
+                returnToMain();
+            }
+        };
+
+        document.getElementById('btn-modal-back-continue').onclick = () => {
+            closeModal('modal-warn-back');
+            returnToMain();
+        };
+
+        document.getElementById('btn-modal-back-return').onclick = () => {
+            closeModal('modal-warn-back');
+        };
+
+        function returnToMain() {
+            editorView.classList.remove('active');
+            mainView.classList.add('active');
+            renderMainScreen();
+        }
+
+        // Tlačítko Uložit v editoru
+        document.getElementById('btn-editor-save').onclick = async () => {
+            showLoading(true);
+            
+            // Příprava datového objektu pro Firebase
+            const saveData = {};
+            
+            localTimes.forEach((item, idx) => {
+                const dbKey = item.time.replace(':', '_');
+                saveData[dbKey] = {
+                    heslo: item.heslo.trim() === '' ? 'none' : item.heslo.trim(),
+                    provedeno: idx === 0 ? 0 : 5 // První čas je odemčený (0), ostatní zamčené (5)
+                };
+            });
+
+            try {
+                // Zapíšeme na root databáze
+                await set(ref(db, '/'), saveData);
+                editorView.classList.remove('active');
+                mainView.classList.add('active');
+            } catch (err) {
+                console.error(err);
+            } finally {
+                showLoading(false);
+            }
+        };
+    </script>
+</body>
+</html>
